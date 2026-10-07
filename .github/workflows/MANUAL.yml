@@ -1,10 +1,22 @@
-name: Run quest MANUAL completion bot
+name: Manual - Run Quest Bot (Multi-Account)
 
 on:
   workflow_dispatch:
+    inputs:
+      account:
+        description: 'Select account to run'
+        required: true
+        default: 'all'
+        type: choice
+        options:
+          - all
+          - account_1
+          - account_2
 
 jobs:
-  run-bot:
+  run-account-1:
+    name: Run Account 1
+    if: inputs.account == 'account_1' || inputs.account == 'all'
     runs-on: ubuntu-latest
     timeout-minutes: 60
 
@@ -26,8 +38,38 @@ jobs:
             npm install
           fi
 
-      - name: Run the bot
+      - name: Run bot for Account 1
         env:
-          TOKEN: ${{ secrets.TOKEN }}
-          WEBHOOK_URL: ${{ secrets.WEBHOOK_URL }}
+          TOKEN: ${{ secrets.TOKEN_1 }}
+          WEBHOOK_URL: ${{ secrets.WEBHOOK_URL_1 }}
+        run: npm run github
+
+  run-account-2:
+    name: Run Account 2
+    if: inputs.account == 'account_2' || inputs.account == 'all'
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js 24
+        uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: |
+          if [ -f package-lock.json ]; then
+            npm ci
+          else
+            npm install
+          fi
+
+      - name: Run bot for Account 2
+        env:
+          TOKEN: ${{ secrets.TOKEN_2 }}
+          WEBHOOK_URL: ${{ secrets.WEBHOOK_URL_2 }}
         run: npm run github
